@@ -1,6 +1,7 @@
 body {
   padding: 50px;
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  text-align: center;
 }
 
 a {
@@ -10,3 +11,13 @@ a {
 .form-errors {
 	color: red;
 }
+
+.footer_link {
+  padding: 10px 10px 10px 10px;
+}
+
+.footer {position: relative;
+	margin-top: -180px; /* negative value of footer height */
+	height: 180px;
+	clear:both;
+} 

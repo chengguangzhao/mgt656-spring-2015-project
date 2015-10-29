@@ -1,0 +1,9 @@
+
+ 
+  {% for person in people %}
+
+    <span class="person" id="{{person.nickname}}-name">
+      {{person.name}}
+    </span>
+    <img id="{{person.nickname}}-headshot" src="{{person.image}}"/>
+  {% endfor %}

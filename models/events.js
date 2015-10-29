@@ -54,7 +54,30 @@ function getById (id) {
   return null;
 }
 
+function getByTitle (title) {
+  var res = [];
+  for (var i = allEvents.length - 1; i >= 0; i--) {
+    if (allEvents[i].title.indexOf(title) >=0){
+      res.push(allEvents[i]);
+    }
+  }
+  return res;
+}
+
+function getFutureEvents () {
+  var res = [];
+  var today_date = new Date();
+  for (var i = allEvents.length - 1; i >= 0; i--) {
+    if (allEvents[i].date > today_date){
+      res.push(allEvents[i]);
+    }
+  }
+  return res;
+}
+
 module.exports = exports = {
   all: allEvents,
-  getById: getById
+  futures: getFutureEvents,
+  getById: getById,
+  getByTitle: getByTitle
 };
