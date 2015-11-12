@@ -54,6 +54,16 @@ function getById (id) {
   return null;
 }
 
+function nextId () {
+  var j=0;
+  for (var i = allEvents.length - 1; i >= 0; i--) {
+    if (j < allEvents[i].id){
+      j=allEvents[i].id
+    }
+  }
+  return j+1;
+}
+
 function getByTitle (title) {
   var res = [];
   for (var i = allEvents.length - 1; i >= 0; i--) {
@@ -79,5 +89,6 @@ module.exports = exports = {
   all: allEvents,
   futures: getFutureEvents,
   getById: getById,
+  nextId: nextId,
   getByTitle: getByTitle
 };

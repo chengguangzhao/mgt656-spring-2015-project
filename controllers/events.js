@@ -22,6 +22,10 @@ var allowedDateInfo = {
     10: 'November',
     11: 'December'
   },
+  days: [
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
+    14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
+    25, 26, 27, 28, 29, 30, 31],
   minutes: [0, 30],
   hours: [
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
@@ -48,14 +52,16 @@ function apiListEvents(request, response) {
   if (request.query.search)
     response.json({events: events.getByTitle(request.query.search)});
   else
-    response.json({events: events.futures()});
+    response.json({events: events.all});
 }
 
 /**
  * Controller that renders a page for creating new events.
  */
 function newEvent(request, response){
-  var contextData = {};
+  var contextData = {
+    'allowedDateInfo': allowedDateInfo
+  };
   response.render('create-event.html', contextData);
 }
 
@@ -65,24 +71,67 @@ function newEvent(request, response){
  * our global list of events.
  */
 function saveEvent(request, response){
-  var contextData = {errors: []};
-
-  if (validator.isLength(request.body.title, 5, 50) === false) {
-    contextData.errors.push('Your title should be between 5 and 100 letters.');
+  // console.log("In saveEvent");
+  // for (var item in request.body)
+  //   if(request.body.hasOwnProperty(item)){
+  //           console.log(item + " = " + request.body[item]);
+  //         }
+    
+  var contextData = {
+    errors: [],
+    allowedDateInfo: allowedDateInfo
+  };
+  var year = parseInt(request.body.year);
+  var month = parseInt(request.body.month);
+  var day = parseInt(request.body.day);
+  var hour = parseInt(request.body.hour);
+  var minute = parseInt(request.body.minute);
+  
+  if (validator.isLength(request.body.title, 1, 50) === false) {
+    contextData.errors.push('Your title should be between 1 and 50 letters.');
+  }
+  if (validator.isLength(request.body.location, 1, 50) === false) {
+    contextData.errors.push('Your event\'s location should be between 1 and 50 letters.');
+  }
+  if (isNaN(year)) {
+    contextData.errors.push('Your event\'s year is not an integer.');
+  } else if (year < 2015 || year > 2016) {
+    //console.log("Added error due to year");
+    contextData.errors.push('Your event\'s year is out of range.');
+  }
+  if (isNaN(month) || month < 0 || month > 11) {
+    //console.log("Added error due to day");
+    contextData.errors.push('Your event\'s month is not acceptable.');
+  }
+  if (isNaN(day) || day < 1 || day > 31) {
+    //console.log("Added error due to day");
+    contextData.errors.push('Your event\'s day is not acceptable.');
+  }
+  if (isNaN(hour) ||  hour < 0 || hour > 23) {
+    //console.log("Added error due to hour");
+    contextData.errors.push('Your event\'s hour is not acceptable.');
+  }
+  if (validator.matches(request.body.image, /http(s?):\/\/([a-z,0-9,.,\/,\?,=]+)(.gif|.png)/i) === false) {
+    contextData.errors.push('Your image url is not valid. '+request.body.image);
   }
 
 
   if (contextData.errors.length === 0) {
+    var newid = parseInt(events.nextId());
+    var date = new Date(year, month, day, hour, minute, 0,0);
+    var datestr = date.toDateString();
     var newEvent = {
+      id: newid,
       title: request.body.title,
       location: request.body.location,
       image: request.body.image,
-      date: new Date(),
+      date:datestr,
       attending: []
     };
     events.all.push(newEvent);
-    response.redirect('/events');
+    response.redirect('/events/'+newid);
   }else{
+    //response.status(302).send(contextData.errors);
     response.render('create-event.html', contextData);
   }
 }
@@ -91,25 +140,27 @@ function eventDetail (request, response) {
   var ev = events.getById(parseInt(request.params.id));
   if (ev === null) {
     response.status(404).send('No such event');
-  }
-  response.render('event-detail.html', {event: ev});
+  } else
+    response.render('event-detail.html', {event: ev});
 }
 
 function rsvp (request, response){
   var ev = events.getById(parseInt(request.params.id));
   if (ev === null) {
     response.status(404).send('No such event');
-  }
+  } else {
 
-  if(validator.isEmail(request.body.email)){
-    ev.attending.push(request.body.email);
-    response.redirect('/events/' + ev.id);
-  }else{
-    var contextData = {errors: [], event: ev};
-    contextData.errors.push('Invalid email');
-    response.render('event-detail.html', contextData);    
-  }
-
+    if(!validator.isEmail(request.body.email) || validator.matches(request.body.email, /^([\w-]+(?:\.[\w-]+)*)@yale.edu/i) === false){
+      var contextData = {errors: [], event: ev};
+      contextData.errors.push('Invalid email');
+      response.render('event-detail.html', contextData);
+    }else{
+      ev.attending.push(request.body.email);
+      response.redirect('/events/' + ev.id);
+      }
+      
+    }
+  
 }
 
 /**
