@@ -96,19 +96,15 @@ function saveEvent(request, response){
   if (isNaN(year)) {
     contextData.errors.push('Your event\'s year is not an integer.');
   } else if (year < 2015 || year > 2016) {
-    //console.log("Added error due to year");
     contextData.errors.push('Your event\'s year is out of range.');
   }
   if (isNaN(month) || month < 0 || month > 11) {
-    //console.log("Added error due to day");
     contextData.errors.push('Your event\'s month is not acceptable.');
   }
   if (isNaN(day) || day < 1 || day > 31) {
-    //console.log("Added error due to day");
     contextData.errors.push('Your event\'s day is not acceptable.');
   }
   if (isNaN(hour) ||  hour < 0 || hour > 23) {
-    //console.log("Added error due to hour");
     contextData.errors.push('Your event\'s hour is not acceptable.');
   }
   if (validator.matches(request.body.image, /http(s?):\/\/([a-z,0-9,.,\/,\?,=]+)(.gif|.png)/i) === false) {
@@ -131,7 +127,6 @@ function saveEvent(request, response){
     events.all.push(newEvent);
     response.redirect('/events/'+newid);
   }else{
-    //response.status(302).send(contextData.errors);
     response.render('create-event.html', contextData);
   }
 }
