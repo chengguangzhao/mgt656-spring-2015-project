@@ -146,7 +146,6 @@ function addAttending (eventId, email, cb) {
 }
 
 
-
 function getByTitle (title) {
   var res = [];
   for (var i = allEvents.length - 1; i >= 0; i--) {
