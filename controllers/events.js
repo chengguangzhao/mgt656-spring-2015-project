@@ -1,6 +1,6 @@
 'use strict';
 
-var events = require('../models/events');
+var events = require('../models/events-pg');
 var validator = require('validator');
 
 // Date data that would be useful to you
@@ -107,7 +107,7 @@ function saveEvent(request, response){
   if (isNaN(hour) ||  hour < 0 || hour > 23) {
     contextData.errors.push('Your event\'s hour is not acceptable.');
   }
-  if (validator.matches(request.body.image, /http(s?):\/\/([a-z,0-9,.,\/,\?,=]+)(.gif|.png)/i) === false) {
+  if (validator.matches(request.body.image, /http(s?):\/\/([a-z0-9.\/\?=\-_]+)(.gif|.png)/i) === false) {
     contextData.errors.push('Your image url is not valid. '+request.body.image);
   }
 
@@ -124,8 +124,15 @@ function saveEvent(request, response){
       date:datestr,
       attending: []
     };
-    events.all.push(newEvent);
-    response.redirect('/events/'+newid);
+    events.addEvent(newEvent, function(err, result){
+      if (err) {
+        contextData.errors.push(err);
+        response.render('create-event.html', contextData);
+      } else {
+        response.redirect('/events/'+newid);
+      }
+    });
+    
   }else{
     response.render('create-event.html', contextData);
   }
@@ -140,22 +147,26 @@ function eventDetail (request, response) {
 }
 
 function rsvp (request, response){
-  var ev = events.getById(parseInt(request.params.id));
+  var eventId = parseInt(request.params.id);
+  var ev = events.getById(eventId);
   if (ev === null) {
     response.status(404).send('No such event');
   } else {
-
     if(!validator.isEmail(request.body.email) || validator.matches(request.body.email, /^([\w-]+(?:\.[\w-]+)*)@yale.edu/i) === false){
       var contextData = {errors: [], event: ev};
       contextData.errors.push('Invalid email');
       response.render('event-detail.html', contextData);
     }else{
-      ev.attending.push(request.body.email);
-      response.redirect('/events/' + ev.id);
-      }
-      
+      events.addAttending(eventId, request.body.email, function(err, result){
+        if (err) {
+          contextData.errors.push(err);
+          response.render('event-detail.html', contextData);
+        } else {
+          response.redirect('/events/' + ev.id);
+        }
+      });
     }
-  
+  }
 }
 
 /**
